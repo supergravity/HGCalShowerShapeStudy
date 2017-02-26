@@ -1,0 +1,17 @@
+# Make sure you input files are in the file 
+# called MC.txt
+
+# To build:
+
+make
+
+# To run 
+
+./makePlots
+
+# To make histograms:
+
+root
+
+.x Plot.C
+

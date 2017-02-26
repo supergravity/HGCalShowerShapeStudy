@@ -1,0 +1,28 @@
+#
+# Follow the steps:
+#
+
+# To build:
+
+make
+
+# To run MC:
+
+cp MC100GeV.txt MC.txt
+./makePlots
+cp output.root outputMC100GeV.root
+
+# To run DATA:
+
+cp data100GeV.txt MC.txt
+./makePlots -t 0
+
+# To run a data/MC comparison and make data/MC plots:
+# Plots of lateral shapes and shower depth 
+# created in your local directory
+
+root
+
+root [0] .x profilePlotsDataMC.C
+
+

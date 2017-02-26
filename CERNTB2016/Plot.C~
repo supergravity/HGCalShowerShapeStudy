@@ -1,0 +1,44 @@
+void Plot(){
+
+  gROOT->Reset();
+  gROOT->SetStyle("ATLAS");
+  gROOT->ForceStyle();
+  
+
+
+  TFile* f = new TFile("./BDT_CMS_GGFjj/vbf.root");
+  TH1D *mggVBF = hMgg->Clone();
+  TFile* fggf = new TFile("./BDT_CMS_GGFjj/ggfjj.root");
+  TH1D *mggGGF = hMgg->Clone();
+  TFile* fgjf = new TFile("./BDT_CMS_GGFjj/gj.root");
+  TH1D *mgj = hMgg->Clone();
+
+
+  //
+  //* Mass plot:
+  //
+
+  mggVBF->Draw("errors");
+  mggGGF->Draw("histosame");
+  mgj->Draw("histosame");
+  mggGGF->SetLineColor(kRed);
+  mgj->SetLineColor(kBlue);
+
+  ostringstream buffer ;
+  float binM=mggVBF->GetBinWidth(1);
+  buffer <<"Events/("<<(binM)<<" GeV)" ;
+  string binM_string=buffer.str(); 
+  buffer.str("");
+  mggVBF->SetXTitle("m_{#gamma#gamma} (GeV)");
+  mggVBF->SetYTitle(binM_string.c_str());
+
+
+  c1->Update();
+  c1->Print("Mgg.png");
+  getchar();
+
+
+
+
+
+}
