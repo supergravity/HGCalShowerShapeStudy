@@ -20,10 +20,6 @@
 #include <algorithm>
 #include "TProfile.h"
 #include "TGraph.h"
-#include "TGraph2D.h"
-#include "TF1.h"
-#include "TFitResultPtr.h"
-#include "TFitResult.h"
 
 #define ZMASS 91187.0
 //Constructor-initializer
@@ -172,7 +168,6 @@ void makePlots::Loop()
   outTree->Branch("Mgg",&m_Mgg,"Mgg/F");
   outTree->Branch("Mjj",&m_Mjj,"Mjj/F");
 
-  TCanvas *c1  = new TCanvas("c1","two_point_correlation",100,10,700,500);
   //
   //* Define some histograms
   //
@@ -193,33 +188,6 @@ void makePlots::Loop()
   TH1D* dRprofAll =new TH1D("dRprofAll","",15,-0.5,14.5);//cm
   TH1D* shDepthAbs=new TH1D("shDepthAbs","",60,0.,30.);
 
-  const int bin_size = 50;
-  //========== Two Point Correlation ==========
-    for (int iL = 0; iL < NLAYERS ;iL++)
-    {
-         char histoName[20];
-         sprintf(histoName,"hEiEj_Multiplication_of_layer%d",iL);
-         hEiEj_Multiplication [iL] = new TH1D (histoName,"",100,0,10);
-         sprintf(histoName,"hDist_Two_hits_of_layer%d",iL);
-         hdist_Two_hits [iL] = new TH1D (histoName,"",100,0,15);
-         sprintf(histoName,"hTwo_point_correlation_of_layer%d",iL);
-         Two_point_correlation [iL] = new TH2D (histoName,"",bin_size,0,15,100,0,70);
-         //sprintf(histoName,"Two_point_correlation_of_layer%d",iL);//Don't know what is it for 
-         Two_point_correl [iL] = new TGraph ();//
-         p1               [iL] = new TProfile ("hProf","Profile of Energy Multiplication versus Distance btw Hits",bin_size,0,15,0,70); // rename p1 
-         //r[iL] = new TFitResultPtr();
-    }
-  //========= Fitting the Profile ========== 
-   TF1 *f1_profFit = new TF1("f1_profFit","[0]+[1]*1/x");
-   TF1 *f2_profFit = new TF1("f2_profFit","[0]*exp([1]*x+[2]*(x**2))");
-   TF1 *f3_profFit = new TF1("f3_profFit","[0]*exp([1]*x)+[2]*exp([3]*x)",0.5,15);  
-   TF1 *f4_profFit = new TF1("f4_profFit","expo");  
-   TF1 *f5_profFit = new TF1("f5_profFit","[0]*exp([1]*x+[2]*(x**2)+[3]*(x**3))",0.5,15);
-   TF1 *f6_profFit = new TF1("f6_profFit","[0]*(1/x)*exp([1]*x+[2]*(x**2)+[3]*(x**3))");
-   TF1 *f7_profFit = new TF1("f7_profFit","[0]*exp([1]*x)+[2]*exp([3]*x)+[4]*exp([5]*x)",0.5,15);
-  
-   TFitResultPtr r ;
-
   //
   //* Counters
   //
@@ -231,7 +199,7 @@ void makePlots::Loop()
   Long64_t nentries = fChain->GetEntries();
 
   std::cout << "Entries: " << nentries << std::endl;
-  for (Long64_t entry=0;entry< nentries ;++entry){
+  for (Long64_t entry=0;entry< 100;++entry){
     if(entry%100==0) std::cout << "Processed ... " << entry 
                                << "/" << nentries << " events" << std::endl;
 
@@ -255,7 +223,7 @@ void makePlots::Loop()
     for(int iL=0; iL<NLAYERS; iL++) {
       double lX0s=Layer.at(iL)->GetX0depth(iL);
       double emax=Layer.at(iL)->GetEneMax();
-      //printf("iL:%u\n",iL);
+      printf("iL:%u\n",iL);
       shDepth += (emax*lX0s);
       sumEmax += emax;
       //cout << "Layer number = " << iL+1 << " X0:" << lX0s << " Emax:" << emax << endl;
@@ -293,14 +261,14 @@ void makePlots::Loop()
         double efactor = 1.+log(emax);//what is efactor?
         
         efactor=0;
-        // cout << "The following parameters are the contents: " << endl << 
-        //         "Layer number: " << iL+1 <<"   "<< "number of hits of this event in the layer: "<< nhits << endl <<
-        //         "Cell number: "  << celln<<"   "<< "the x coordinate of the hit?: "<< xhit <<"    "<< "the y coordinate of the hit?: "<< yhit << endl <<
-        //         "the X coordinate of the maximum hit of the layer?: "<< xmax <<"     "<< "the Y coordinate of the maximum hit of the layer?: "<< ymax << endl <<
-        //         "the Raw Energy of the layer of the cell of the hit?: "<< EGeV << "     "<< "the thickness of the layer in unit of X0: " <<  lX0s << endl<<
-        //          "    " << "the dx of the layer of the hit?: "<< dx << endl <<
-        //         "the dy of the layer of the hit?: "<< dy << "   "<< "the distance between the hit and the seed which has the maximum energy" << dRxy <<endl<< 
-        //         "the area in Pad Units?: " << areaInPadUnits << "    "<<"the normalized shower depth weighting?" <<tfactor <<endl;  
+        cout << "The following parameters are the contents: " << endl << 
+                "Layer number: " << iL+1 <<"   "<< "number of hits of this event in the layer: "<< nhits << endl <<
+                "Cell number: "  << celln<<"   "<< "the x coordinate of the hit?: "<< xhit <<"    "<< "the y coordinate of the hit?: "<< yhit << endl <<
+                "the X coordinate of the maximum hit of the layer?: "<< xmax <<"     "<< "the Y coordinate of the maximum hit of the layer?: "<< ymax << endl <<
+                "the Raw Energy of the layer of the cell of the hit?: "<< EGeV << "     "<< "the thickness of the layer in unit of X0: " <<  lX0s << endl<<
+                 "    " << "the dx of the layer of the hit?: "<< dx << endl <<
+                "the dy of the layer of the hit?: "<< dy << "   "<< "the distance between the hit and the seed which has the maximum energy" << dRxy <<endl<< 
+                "the area in Pad Units?: " << areaInPadUnits << "    "<<"the normalized shower depth weighting?" <<tfactor <<endl;  
         //Layer.at(iL)->GetXMax() << " " 
         //     << Layer.at(iL)->GetYMax() << " " << dx << " " << dy
         //    << " " << EGeV << " " << emax << " " << celln << endl; 
@@ -359,7 +327,7 @@ void makePlots::Loop()
     for (int iL = 0;iL < NLAYERS; iL++)
     {
         int nhits = Layer.at(iL)->GetNhits();
-        //printf("the number of hit in layer %d is: %d\n",iL,nhits);
+        printf("the number of hit in layer %d is: %d\n",iL,nhits);
         for (int ih = 0;ih < nhits; ih++)
         {
             Ehit1[iL][ih] = Layer.at(iL)->GetErawHit(ih);
@@ -383,33 +351,28 @@ void makePlots::Loop()
             {
                 E_two_point[iL][counter] = Ehit1[iL][ih1]*Ehit2[iL][ih2];
                 dist_two_point[iL][counter] = sqrt(pow(dist_1_X[iL][ih1]-dist_2_X[iL][ih2],2)+pow(dist_1_Y[iL][ih1]-dist_2_Y[iL][ih2],2));
-                //cout << "The Multiplication of Energies of the hits "<<ih1<<" and "<<ih2<<" : "<<E_two_point[iL][counter]*pow(GEVTOMEV,2)<<"(MeV)^2"<<endl<<"The distance between the hits "<<ih1<<" and "<<ih2<<" : "<<dist_two_point[iL][counter]*MMtoCM<<" (CM)"<<endl<<"The x components of hit1 and hit2 are: "<<dist_1_X[iL][ih1]<<"(MM)"<<" and "<<dist_2_X[iL][ih2]<<"(MM)"<<endl<<"The y components of hit1 and hit2 are: "<<dist_1_Y[iL][ih1]<<"(MM)"<<" and "<<dist_2_Y[iL][ih2]<<"(MM)"<<endl;
-                hEiEj_Multiplication   [iL]  -> Fill(E_two_point[iL][counter]*pow(GEVTOMEV,2));
-                hdist_Two_hits         [iL]  -> Fill(dist_two_point[iL][counter]*MMtoCM);
-                Two_point_correlation  [iL]  -> Fill(dist_two_point[iL][counter]*MMtoCM,E_two_point[iL][counter]*pow(GEVTOMEV,2));
-                Two_point_correl       [iL]  -> SetPoint(counter,dist_two_point[iL][counter]*MMtoCM,E_two_point[iL][counter]*pow(GEVTOMEV,2));
-                p1                     [iL]  -> Fill(dist_two_point[iL][counter]*MMtoCM,E_two_point[iL][counter]*pow(GEVTOMEV,2),1);
+                cout << "The Multiplication of Energies of the hits "<<ih1<<" and "<<ih2<<" : "<<E_two_point[iL][counter]<<"(GeV)^2"<<endl<<"The distance between the hits "<<ih1<<" and "<<ih2<<" : "<<dist_two_point[iL][counter]<<endl<<"The x components of hit1 and hit2 are: "<<dist_1_X[iL][ih1]<<" and "<<dist_2_X[iL][ih2]<<endl<<"The y components of hit1 and hit2 are: "<<dist_1_Y[iL][ih1]<<" and "<<dist_2_Y[iL][ih2]<<endl;
                 counter = counter + 1;
-                //cout << "counter: "<<counter<<endl<< "ih2: " <<ih2<<"\n"<<endl; 
+                cout << "counter: "<<counter<<endl<< "ih2: " <<ih2<<"\n"<<endl; 
             }
         }
         Layer_counter[iL] = counter;
     }// layer loop ends
 
     // Draw the plots //per event
-    //TGraph  *gr[NLAYERS];
-    //for (int iL = 0 ;iL < NLAYERS; iL++)
-    //{
-    //    gr[iL] = new TGraph();
-    //    for (int idx = 0;idx < Layer_counter[iL]; idx++)
-    //    {
-    //        gr[iL] -> SetPoint(idx,dist_two_point[iL][idx],E_two_point[iL][idx]);
-    //        cout <<idx<<endl<<dist_two_point[iL][idx]<<endl<<E_two_point[iL][idx]<<endl<<"\n"<<endl;
-    //    }
-    //    gr[iL] -> Draw("AP*");
-    //    //c1 -> Draw("Same");
-    //    c1 -> Print(Form("Two_point_correlation_Layer_%d_event_%d.png",iL,entry));
-    //}
+    TCanvas*c1 = new TCanvas("c1","two_point_correlation",100,10,700,500);
+    TGraph *gr[NLAYERS];
+    for (int iL = 0 ;iL < NLAYERS; iL++)
+    {
+        gr[iL] = new TGraph();
+        for (int idx = 0;idx < Layer_counter[iL]; idx++)
+        {
+            gr[iL] -> SetPoint(Layer_counter[iL],dist_two_point[iL][idx],E_two_point[iL][idx]);
+        }
+        gr[iL] -> Draw("AP");
+        //c1 -> Draw("Same");
+        c1 -> Print(Form("Two_point_correlation_Layer_%d.png",iL));
+    }
     
     //TGraph *.....
 
@@ -443,58 +406,7 @@ void makePlots::Loop()
   dRVlayer->Scale(1./EventsPassed);
   dRprofAll->Sumw2();
   dRprofAll->Scale(1./EventsPassed);
-  //========== Make Plots ==========
-  
-     double chi_sqr = 0.0;
 
-    for(int iL = 0;iL < 1; iL++)
-    {      
-        // hEiEj_Multiplication [iL] -> SetXTitle("(MeV)^2");
-        // hEiEj_Multiplication [iL] -> SetYTitle("Number_of_Hits");
-        // hEiEj_Multiplication [iL] -> Draw();
-        // c1 -> Print(Form("EiEj_Multiplication_Layer_%d_BinSize_%d.png",iL,bin_size));
-        // hdist_Two_hits       [iL] -> SetXTitle("CM");
-        // hdist_Two_hits       [iL] -> SetYTitle("Number_of_Hits");
-        // hdist_Two_hits       [iL] -> Draw();
-        // c1 -> Print(Form("Distance_of_two_Hits_Layer_%d_BinSize_%d.png",iL,bin_size));
-        // Two_point_correlation[iL] -> SetXTitle("CM");
-        // Two_point_correlation[iL] -> SetYTitle("(MeV)^2");
-        // Two_point_correlation[iL] -> Draw();
-        // c1 -> Print(Form("Two_point_correlation_Layer_%d_BinSize_%d.png",iL,bin_size));   
-        // Two_point_correl     [iL] -> GetXaxis() -> SetTitle("CM");
-        // Two_point_correl     [iL] -> GetYaxis() -> SetTitle("(MeV)^2");
-        // Two_point_correl     [iL] -> Draw("AP*");
-         ////c1 -> SetLogy();
-         //c1 -> Print(Form("Graph_Two_point_correlation_yLogscale_Layer_%d_BinSize_%d.png",iL,bin_size));
-         //c1 -> Print(Form("Graph_Two_point_correlation_Layer_%d_BinSize_%d.png",iL,bin_size));
-         p1                   [iL] -> Draw("SAME");
-         //c1 -> SetLogy();
-         if (iL == 0)
-         {
-             
-           //r  =   p1                   [iL] -> Fit("f5_profFit","RS");
-           r  =   p1                   [iL] -> Fit("f7_profFit","RS");
-           f7_profFit                       -> SetLineColor(iL+3);    
-         }
-         else
-         {
-           //r =  p1                   [iL] -> Fit("f3_profFit","RS");
-           r =  p1                   [iL] -> Fit("f7_profFit","RS");
-           f7_profFit                     -> SetLineColor(iL+3);    
-         }
-         r                         -> Print("V");  
-         p1                   [iL] -> SetXTitle("CM");
-         p1                   [iL] -> SetYTitle("(MeV)^2");
-         p1                   [iL] -> SetAxisRange(0.1,5,"Y");
-         p1                   [iL] -> SetMarkerStyle(21+iL);
-         p1                   [iL] -> SetStats(kFALSE);//
-         //p1                   [iL] -> SetMarkerColor(iL+1)
-         //p1                   [iL] -> //Legend adding chi_sqr value 
-         //c1 -> Print(Form("Energy_Multiplication_yLogscale_Fit_Exp_versus_HitDis_Layer%d_BinSize_%d.png",iL,bin_size));
-         //c1 -> Print(Form("Energy_Multiplication_versus_HitDis_Fit_Event_28000_Exp_Layer%d__BinSize_%d.png",iL,bin_size));
-    }
-    c1 -> SetLogy();
-    c1 -> Print(Form("Energy_Multiplication_versus_HitDis_Fit_Event_28000_Exp_Total_Layer__BinSize_%d.png",bin_size));
 
   cout << "PassedEvents :" << EventsPassed << endl;
   cout << "Entries      :" << nentries << endl;

@@ -1,5 +1,5 @@
 CXXFLAGS=-g -m64 -O2 -Wall $(shell root-config --cflags ) -I ../utils -I ../BaseParticle -I../Electrons -I ../Muons
-LIBS=-g -m64  $(shell root-config --libs) -lMathMore   -lGenVector
+LIBS=-g -m64  $(shell root-config --libs)    -lGenVector
 
 LOCAL = .
 COMMON = $(LOCAL)

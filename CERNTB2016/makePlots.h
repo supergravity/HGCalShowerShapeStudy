@@ -14,9 +14,12 @@
 #include <TF1.h>
 #include <TH1.h>
 #include <TH2.h>
+#include <TGraph.h>
 #include <vector>
 #include <algorithm> //std::sort
 #include <functional>
+#include "TProfile.h"
+//#include "TFitResultPtr.h"
 
 // Local objects:
 #include "CompartmentObject.h" //hold the layer(s)
@@ -35,13 +38,14 @@ typedef  ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiE4D<double> > Base4Mom;
 //#endif
 
 //const double ENEPERMIP    =0.000052;//GeV (52KeV/MIP)
-const double ENEPERMIP    = 56.31e-06;  // 125pion MPV response
-const int    MAXENEBINS   =1;
-const int    NLAYERS      =8;
-const int    HIT_LIMIT    =2350;
-const int    HIT_MAX_ARRAY=4096;
-const double MMtoCM       =0.1;
-const double MEVTOGEV     =0.001;
+const double ENEPERMIP    =  56.31e-06;  // 125pion MPV response
+const int    MAXENEBINS   =  1.5;
+const int    NLAYERS      =  8;
+const int    HIT_LIMIT    =  2350;
+const int    HIT_MAX_ARRAY=  4096;
+const double MMtoCM       =  0.1;
+const double MEVTOGEV     =  0.001;
+const double GEVTOMEV     =  1000;
 
 //* Prototype Configuration:
 //                     Layer:   0   1    2     3    4    5    6    7
@@ -69,6 +73,15 @@ class makePlots {
   TH1D    *hEresol[MAXENEBINS];
   TH2D    *hetaphiprof[NLAYERS];
   TH1D    *dRprof[NLAYERS];
+
+  //Two point correlation 
+  TH1D     *hEiEj_Multiplication   [NLAYERS];
+  TH1D     *hdist_Two_hits         [NLAYERS];
+  TH2D     *Two_point_correlation  [NLAYERS];
+  TGraph   *Two_point_correl       [NLAYERS];
+  TProfile *p1                     [NLAYERS];   //[hit_size]
+  //TFitResultPtr r                  [NLAYERS];
+ 
 
   bool FillResolHistos();
   void PrintGenInfo();
