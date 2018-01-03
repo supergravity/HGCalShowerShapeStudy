@@ -185,18 +185,19 @@ void makePlots::Loop()
     const int bin_size = 200;
     const int bin_number = 50;
     const int bin_number_2 = 15;
-
+    //bool particle_type = 1; //1:pion 0:electron
     // Open the File
+
 
     TFile* outfile;
     if (doTruth)
     {
-        //outfile=new TFile(Form("output_MC_%dGeV.root",input_energy),"RECREATE");
-        outfile=new TFile(Form("output_electron_MC_%dGeV.root",input_energy),"RECREATE");
+        //outfile=new TFile(Form("output_%dGeVPionMC_with_2MIPcut_10_12X0.root",input_energy),"RECREATE");
+        outfile=new TFile(Form("output_%dGeVelectron_MC_with_2MIPcut_10_12X0.root",input_energy),"RECREATE");
     }
     else
     {
-        outfile=new TFile(Form("output_Data_%dGeV.root",input_energy),"RECREATE");
+        outfile=new TFile(Form("output_%dGeVData_with_2MIPcut_10_12X0.root",input_energy),"RECREATE");
     }
     outTree = new TTree("DataTree","Data");
     outTree->Branch("Mgg",&m_Mgg,"Mgg/F");
@@ -212,8 +213,10 @@ void makePlots::Loop()
     TH2D* dRVlayer =   new TH2D("dRVlayer","",10,-0.5,9.5,31,0,31);     //cm
     TH1D* dRprofAll =  new TH1D("dRprofAll","",15,-0.5,14.5);//cm
     */
+    //char histoName_ [50];
+    //sprintf(histoName_,"shower");
     TH1D* shDepthAbs = new TH1D("shDepthAbs","",60,0.,30.);
-
+    shDepthAbs -> Sumw2(); 
 
 
 
@@ -260,7 +263,7 @@ void makePlots::Loop()
               //sprintf(histoName,"Profile of Energy Multiplication versus Distance btw Hits_of_layer%d_MC",iL);
               sprintf(histoName_2,"hProf_layer%d_MC",iL);
               p1               [iL] = new TProfile (histoName_2,"",bin_size,0,15,0,70); // rename p1 
-              EiEj_prof        [iL] = new TProfile (histoName,"",bin_size,0,8,0,1);
+              EiEj_prof        [iL] = new TProfile (histoName,"",bin_size,0,8);
               EiEj_nor_dis_graph [iL] = new TGraphErrors();
               char histoName_6[40];
               for (int r = 0; r < Ring;r++)
@@ -297,7 +300,7 @@ void makePlots::Loop()
                //sprintf(histoName,"Profile of Energy Multiplication versus Distance btw Hits_of_layer%d_Data",iL);
               sprintf(histoName_2,"hProf_layer%d_Data",iL);
               p1               [iL] = new TProfile (histoName_2,"",bin_size,0,15,0,70); // rename p1 
-              EiEj_prof        [iL] = new TProfile (histoName,"",bin_size,0,8,0,1);
+              EiEj_prof        [iL] = new TProfile (histoName,"",bin_size,0,8);
               EiEj_nor_dis_graph [iL] = new TGraphErrors();
               //sprintf(histoName_2,"hProf_layer_pad%d_Data",iL);
               //p2               [iL] = new TProfile (histoName_2,"",bin_size,0,8,0,70); // rename p1 
@@ -395,7 +398,11 @@ void makePlots::Loop()
     //
     //* Counters
     //
-    int EventsPassed = 0;
+    int allCutsPassed       = 0;
+    int shDepthCutPassed    = 0;
+    int E8CutPassed         = 0;
+    //int MIPCutPassed        = 0;
+    int EvisCutPassed       = 0;
 
     //
     //* Loop over Events (!)
@@ -422,6 +429,11 @@ void makePlots::Loop()
 
 
 
+
+
+
+
+
     
 
         // ==========  Event Cuts Application ========== 
@@ -442,11 +454,8 @@ void makePlots::Loop()
             continue; 
         }
         
-        // ==========  Event Cuts Application Ends ==========      
-
-
-
-
+        // ========== Electron Preselection Cuts on Pion ==========
+        
         //
         //* Calculate Shower Depth
         //
@@ -463,7 +472,67 @@ void makePlots::Loop()
         }
         //getchar();
         shDepth = shDepth/sumEmax;//shower depth using emax in layer.
+        //Shower Depth Cuts 
+        //if (!(shDepth < 15) && !(shDepth > 6))
+        //if (!(shDepth < 8) && !(shDepth > 6))
+        //if (!(shDepth < 10) && !(shDepth > 8))
+        if (!(shDepth < 12) && !(shDepth > 10))
+        {
+            Clear();
+            continue;
+        }
+        //Shower Depth Cuts Ends
         shDepthAbs->Fill(shDepth);
+        shDepthCutPassed++;
+        //E8 Cut 
+        double E8 = 0;
+        int N_hits = Layer.at(7) -> GetNhits();
+        for(int ih = 0;ih < N_hits;ih++)
+        {
+            double E_GeV=Layer.at(7)->GetErawHit(ih);
+            E8 = E8 + E_GeV;
+        }
+        E8 = E8*GEVTOMEV;
+        if (! (E8 < 2.5))
+        {
+            Clear();
+            continue;
+        }
+        //E8 Cut Ends
+        E8CutPassed++;
+        //Evis Cut && 20 MIP cut
+
+        double Evis = 0;
+        for (int iL = 0; iL < NLAYERS;iL++)
+        {
+            double Evis_layer = 0;
+            N_hits = Layer.at(iL) -> GetNhits();
+            for (int ih = 0;ih < N_hits;ih++)
+            {
+                double E_GeV=Layer.at(iL) -> GetErawHit(ih);
+                if (!(E_GeV > 20*ENEPERMIP))
+                {
+                    //Clear();
+                    continue;
+                }
+                Evis_layer = Evis_layer + E_GeV;
+            }
+            Evis = Evis + Evis_layer;
+        }
+        //MIPCutPassed ++;
+        if (!(Evis > 0.01))
+        {
+            Clear();
+            continue;
+        }
+        EvisCutPassed++;
+        //Evis Cut Ends
+
+        // ==========  Event Cuts Application Ends ==========      
+
+
+
+
     
     
         //
@@ -576,8 +645,14 @@ void makePlots::Loop()
             //printf("the number of hit in layer %d is: %d\n",iL,nhits);
             for (int ih = 0;ih < nhits; ih++)
             {
-                Ehit1[iL][ih] = Layer.at(iL)->GetErawHit(ih);
-                Ehit2[iL][ih] = Layer.at(iL)->GetErawHit(ih);
+                if ((Layer.at(iL) -> GetErawHit(ih)) >= 2*ENEPERMIP)
+                {
+                    Ehit1[iL][ih] = Layer.at(iL)->GetErawHit(ih);
+                }
+                if ((Layer.at(iL) -> GetErawHit(ih)) >= 2*ENEPERMIP)
+                {
+                    Ehit2[iL][ih] = Layer.at(iL)->GetErawHit(ih);
+                }
                 dist_1_X[iL][ih] = Layer.at(iL)->GetXHit(ih);
                 dist_1_Y[iL][ih] = Layer.at(iL)->GetYHit(ih);
                 dist_2_X[iL][ih] = Layer.at(iL)->GetXHit(ih);
@@ -979,7 +1054,7 @@ void makePlots::Loop()
         m_Mjj=1.0;
 
         outTree->Fill();
-        EventsPassed++;
+        allCutsPassed++;
         //
         //* Delete Layers (note that we cannot 'continue' after we build them)
         //
@@ -1208,8 +1283,8 @@ void makePlots::Loop()
     //Fill Total energy of each layer
     for (int iL = 0;iL < NLAYERS;iL++)
     {
-        cout << "The Normalized by event total energy of layer "<<iL+1<<" is "<<Elayertotal[iL]*GEVTOMEV/EventsPassed<<"MeV"<<endl;
-        hene_total_layer -> SetBinContent(iL+1,Elayertotal[iL]*GEVTOMEV/EventsPassed);
+        cout << "The Normalized by event total energy of layer "<<iL+1<<" is "<<Elayertotal[iL]*GEVTOMEV/allCutsPassed<<"MeV"<<endl;
+        hene_total_layer -> SetBinContent(iL+1,Elayertotal[iL]*GEVTOMEV/allCutsPassed);
     }
     
     // Fill TGraph2D 
@@ -1250,9 +1325,9 @@ void makePlots::Loop()
             //cout <<"The Total_entry_number in layer "<<iL<<" is "<<total_entry<<endl;
     }
     //* Normalize profile histograms per event
-    //dRVlayer->Scale(1./EventsPassed);
+    //dRVlayer->Scale(1./allCutsPassed);
     //dRprofAll->Sumw2();
-    //dRprofAll->Scale(1./EventsPassed);
+    //dRprofAll->Scale(1./allCutsPassed);
     
     
     //========== Make Plots ==========
@@ -1260,13 +1335,18 @@ void makePlots::Loop()
     double chi_sqr = 0.0;
     int logy = 0; // 1: plots with log scale 0:normal scale 
 
+    //Fill the Histogram of shower shape 
+    shDepthAbs -> SetXTitle("");
+    shDepthAbs -> SetYTitle("#");
+    shDepthAbs -> Draw();
+
     //Fill the Histogram of the total energy of each layer       
     hene_total_layer -> SetXTitle("Number_of_Layer");
     hene_total_layer -> SetYTitle("MeV");
     hene_total_layer -> Draw();
 
     //Fill the Histogram of the total energy of the detector(8 layer)
-    helayerRawtotal -> Scale(1./EventsPassed);
+    helayerRawtotal -> Scale(1./allCutsPassed);
     helayerRawtotal -> SetXTitle("MeV");
     helayerRawtotal -> SetYTitle("");
     helayerRawtotal -> Draw ();
@@ -1275,7 +1355,7 @@ void makePlots::Loop()
     for(int iL = 0;iL < NLAYERS; iL++)
     {  
         //Fill the Histogram of the energy of each layer per event
-        helayerRaw [iL] -> Scale(1./EventsPassed);
+        helayerRaw [iL] -> Scale(1./(helayerRaw[iL] -> Integral()));
         helayerRaw [iL] -> SetXTitle("MeV");
         helayerRaw [iL] -> SetYTitle("");
         helayerRaw [iL] -> Draw();
@@ -1393,10 +1473,13 @@ void makePlots::Loop()
         h2_prof_mc ->Draw("pcol");
     }
     
-
-    cout << "PassedEvents :" << EventsPassed << endl;
+    cout << "shDepthCutPassed: "<< shDepthCutPassed <<endl;
+    cout << "E8CutPassed:      "<< E8CutPassed      <<endl;
+    //cout << "MIPCutPassed:     "<< MIPCutPassed     <<endl;
+    cout << "EvisCutPassed:    "<< EvisCutPassed    <<endl;
+    cout << "allCutsPassedEvents :" << allCutsPassed << endl;
     cout << "Entries      :" << nentries << endl;
-    cout << "Efficiency is :" << ((float) EventsPassed)/nentries << endl;
+    cout << "Overall Efficiency is :" << ((float) allCutsPassed)/nentries << endl;
 
     //std::cout << "a1\n";
     h2_prof_mc -> SetName(histoName_3);

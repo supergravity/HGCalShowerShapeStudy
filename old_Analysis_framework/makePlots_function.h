@@ -44,12 +44,12 @@ void error_on_mean (vector <std::pair<double,double> >**vec_,vector<double> avg 
         double error_on_mean = 0;
         for (iter; iter != vec_[i] ->end();iter++)
         {
-            var = var + pow(((iter->second)-average),2);
+            var = var + pow(((iter->second)-average),2); // calculating sum(number -)^2 
         } 
         cout<<"var: "<<var<<endl;
         std::cout<<"vec_ size :"<<vec_[i]->size()<<endl;
-        var = var /(vec_[i]->size()-1);  
-        error_on_mean = sqrt(var)/sqrt(vec_[i]->size());
+        var = var /(vec_[i]->size()-1);  //calculating variance 
+        error_on_mean = sqrt(var)/sqrt(vec_[i]->size()); //calculating error_on_mean 
         cout<<"error_on_mean of ring"<<i+1<<" = "<<error_on_mean<<endl;
         err.push_back(error_on_mean);
     }

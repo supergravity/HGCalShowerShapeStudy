@@ -39,8 +39,11 @@ typedef  ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiE4D<double> > Base4Mom;
 #include "P4Helpers.h"
 //#endif
 
-//const double ENEPERMIP    =0.000052;//GeV (52KeV/MIP) (electron)
-const double ENEPERMIP    =  56.31e-06;  // 125pion MPV response
+
+//const int ENEPERMIP    =  56.31e-06;  // 125pion MPV response
+//const int raw_enefactor = 1.115; //(for MIPtoMEV == 56.31)(for pion)
+const int ENEPERMIP    =0.000052;//GeV (52KeV/MIP) (electron)
+const int raw_enefactor = 1.205;//(for MIPtoMEV == 53.8)(for electron))
 const int    MAXENEBINS   =  1.5;
 const int    NLAYERS      =  8;
 const int    Ring         =  7;
@@ -49,8 +52,6 @@ const int    HIT_MAX_ARRAY=  4096;
 const double MMtoCM       =  0.1;
 const double MEVTOGEV     =  0.001;
 const double GEVTOMEV     =  1000;
-//const double raw_enefactor = 1.205;//(for MIPtoMEV == 53.8)(for electron))
-const double raw_enefactor = 1.115; //(for MIPtoMEV == 56.31)(for pion)
 
 //* Prototype Configuration:
 //                     Layer:   0   1    2     3    4    5    6    7
