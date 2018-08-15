@@ -1,4 +1,5 @@
 CXXFLAGS=-g -m64 -O2 -Wall $(shell root-config --cflags ) -I ../utils -I ../BaseParticle -I../Electrons -I ../Muons
+//LIBS=-g -m64  $(shell root-config --libs) -lMathMore   -lGenVector
 LIBS=-g -m64  $(shell root-config --libs)    -lGenVector
 
 LOCAL = .
@@ -17,7 +18,7 @@ makePlots :	main.o makePlots.o
 main.o :	main.cxx  makePlots.h
 		$(CC) -c $(CXXFLAGS) $< -o $@
 
-makePlots.o :    makePlots.cxx makePlots.h waferGeom.h CompartmentObject.h makePlots_function.h
+makePlots.o :    makePlots.cxx   makePlots.h waferGeom.h  CompartmentObject.h
 		$(CC) -c $(CXXFLAGS) $< -o $@
 
 EnergyRescalerUpgrade.o :    EnergyRescalerUpgrade.cxx   EnergyRescalerUpgrade.h
